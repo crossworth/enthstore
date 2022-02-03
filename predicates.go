@@ -14,12 +14,11 @@ func HasKey(column string, key string) *sql.Predicate {
 }
 
 // HasAllKeys checks if the given column has all the keys provided.
-func HasAllKeys(column string, key string, others ...string) *sql.Predicate {
+func HasAllKeys(column string, keys ...string) *sql.Predicate {
 	return sql.P(func(b *sql.Builder) {
 		b.Ident(column).WriteString(" ?& ").
 			WriteString("ARRAY[")
 
-		keys := append([]string{key}, others...)
 		quoted := make([]string, 0, len(keys))
 		for _, k := range keys {
 			quoted = append(quoted, quoteKey(k))
