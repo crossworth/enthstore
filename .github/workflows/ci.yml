@@ -1,0 +1,73 @@
+name: Continuous Integration
+on:
+  - pull_request
+  - push
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run linters
+        uses: golangci/golangci-lint-action@v2.5.2
+        with:
+          version: v1.43.0
+          args: --verbose
+  tests:
+    runs-on: ubuntu-latest
+    name: Unit tests
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.17'
+      - name: Restore cache
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Go test (unit test)
+        run: |
+          go test -v -race -run '^Test[^Integration]' ./...
+  integration-tests:
+    runs-on: ubuntu-latest
+    name: Integration tests
+    services:
+      postgres14:
+        image: postgres:14
+        env:
+          POSTGRES_DB: hs_testing
+          POSTGRES_PASSWORD: root
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.17'
+      - name: Restore cache
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Run integration tests
+        run: go test -v -race -p 1 -run TestIntegration ./...
+        env:
+          TESTING_DATABASE: true
+          TESTING_DATABASE_HOST: localhost
+          TESTING_DATABASE_PORT: 5434
+          TESTING_DATABASE_DB: hs_testing
+          TESTING_DATABASE_USER: postgres
+          TESTING_DATABASE_PASSWORD: root

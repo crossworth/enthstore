@@ -1,0 +1,37 @@
+run:
+  timeout: 5m
+
+linters:
+  enable:
+    - revive
+    - bidichk
+    - bodyclose
+    - contextcheck
+    - durationcheck
+    - cyclop
+    - errname
+    - errorlint
+    - exhaustive
+    - exportloopref
+    - forcetypeassert
+    - gocognit
+    - goconst
+    - gocritic
+    - godot
+    - gofmt
+    - goimports
+    - gosec
+    - importas
+    - predeclared
+    - promlinter
+    - tenv
+    - thelper
+    - tparallel
+    - whitespace
+
+linters-settings:
+  cyclop:
+    max-complexity: 25
+    skip-tests: true
+  gocognit:
+    min-complexity: 40
